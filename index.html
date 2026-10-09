@@ -84,6 +84,11 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
 .banner{background:var(--plate);border-left:5px solid var(--amber);padding:12px 16px;margin-bottom:20px;border-radius:3px}
 .banner p{margin:0 0 8px}
 .zero{text-align:center;padding:48px 16px;color:var(--muted);border:2px dashed var(--line);border-radius:6px}
+.adminbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-family:var(--cond);font-size:.85rem;background:var(--amber);color:#1E2A31;padding:2px 8px;border-radius:3px}
+.backlink{display:inline-block;margin-bottom:16px;color:var(--blue)}
+.single .plate{border-width:3px}
+.pinline{font-family:Consolas,monospace;font-size:.8rem;word-break:break-all;background:var(--steel);padding:8px;border-radius:3px;user-select:all}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   background:var(--ink);color:var(--plate);padding:10px 16px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
@@ -96,18 +101,22 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
   <header class="top">
     <div>
       <h1>Motor Parameter Tracker</h1>
-      <p class="sub">Record current and previous readings for each motor. Scan a motor's QR to view or edit it on another device.</p>
+      <p class="sub" id="subline">Record current and previous readings for each motor. Scan a motor's QR to view or edit it on another device.</p>
     </div>
-    <div class="tools">
-      <button id="exportBtn" class="ghost">Export backup</button>
-      <button id="importBtn" class="ghost">Import backup</button>
+    <div class="adminbar">
+      <span class="badge" id="adminBadge" hidden>Admin</span>
+      <button id="exportBtn" class="ghost" hidden>Export backup</button>
+      <button id="importBtn" class="ghost" hidden>Import backup</button>
+      <button id="pinBtn" class="ghost" hidden>Change PIN</button>
+      <button id="adminBtn" class="ghost">Admin login</button>
       <input type="file" id="importFile" accept="application/json" hidden>
     </div>
   </header>
 
   <div id="banner"></div>
+  <div id="pinPanel"></div>
 
-  <form class="new-motor" id="newMotorForm">
+  <form class="new-motor" id="newMotorForm" hidden>
     <input id="newMotorName" placeholder="Motor name, e.g. Flyer Frame spindle M1" aria-label="Motor name" required>
     <button class="primary" type="submit">Create motor</button>
   </form>
@@ -118,8 +127,20 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
 
 <script>
 (function(){
+  // ===== ADMIN PIN =====
+  // SHA-256 hash of the admin PIN. Default PIN is 1234.
+  // To change: log in as admin, select "Change PIN", and paste the new line here.
+  const ADMIN_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+
   const KEY = "motorTracker.v1";
   let motors = load();
+  let isAdmin = (()=>{ try{ return sessionStorage.getItem("motorTracker.admin")==="1"; }catch(e){ return false; } })();
+  let singleId = null;   // set when the page is opened from a motor QR
+
+  async function sha256(t){
+    const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  }
 
   // ---------- storage ----------
   function load(){
@@ -179,7 +200,11 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
   const fmtDate = iso => iso ? new Date(iso).toLocaleString() : "—";
 
   // ---------- actions ----------
-  function touch(m){ m.updated = now(); save(); render(); }
+  function touch(m){
+    m.updated = now(); save();
+    if(singleId===m.id) history.replaceState(null,"","#m="+encodeMotor(m));
+    render();
+  }
   function findMotor(id){ return motors.find(m=>m.id===id); }
 
   $("#newMotorForm").addEventListener("submit", e=>{
@@ -193,11 +218,31 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
 
   // ---------- render ----------
   function render(){
+    $("#adminBadge").hidden = !isAdmin;
+    ["#exportBtn","#importBtn","#pinBtn"].forEach(id=>$(id).hidden = !isAdmin);
+    $("#adminBtn").textContent = isAdmin ? "Log out" : "Admin login";
+    $("#newMotorForm").hidden = !isAdmin || !!singleId;
+    if(!isAdmin) $("#pinPanel").innerHTML="";
+
     const list = $("#list"); list.innerHTML="";
+    document.body.classList.toggle("single", !!singleId);
+
+    if(singleId){
+      const m = findMotor(singleId);
+      $("#subline").textContent = "Edit the values below. Changes are saved on this device.";
+      if(isAdmin) list.append(el("a",{href:location.pathname,class:"backlink"},"Show all motors"));
+      if(m) list.append(plate(m));
+      return;
+    }
+
+    $("#subline").textContent = isAdmin
+      ? "Create motors, set up their parameters, and print each motor's QR."
+      : "Record current and previous readings for each motor.";
     if(!motors.length){
       list.append(el("div",{class:"zero"},
         el("p",{},"No motors yet."),
-        el("p",{},"Type a motor name above and select Create motor to start tracking.")));
+        el("p",{}, isAdmin ? "Type a motor name above and select Create motor to start tracking."
+                           : "An admin needs to create motors first. Select Admin login to add one.")));
       return;
     }
     motors.forEach(m=>list.append(plate(m)));
@@ -211,14 +256,16 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
     const title = el("h2",{class:"plate-name"}, m.name);
     const head = el("div",{class:"plate-head"},
       el("div",{}, title, el("div",{class:"meta"}, `${m.params.length} parameter${m.params.length===1?"":"s"}, last updated ${fmtDate(m.updated)}`)),
-      el("div",{class:"tools"},
+      !isAdmin ? "" : el("div",{class:"tools"},
         el("button",{class:"ghost",onclick:()=>{
           const n = prompt("Rename motor", m.name);
           if(n && n.trim()){ m.name=n.trim(); touch(m); }
         }},"Rename"),
         el("button",{class:"danger",onclick:()=>{
           if(confirm(`Delete "${m.name}" and all its parameters?`)){
-            motors = motors.filter(x=>x.id!==m.id); save(); render(); toast("Motor deleted");
+            motors = motors.filter(x=>x.id!==m.id); save();
+            if(singleId===m.id){ singleId=null; history.replaceState(null,"",location.pathname); }
+            render(); toast("Motor deleted");
           }
         }},"Delete motor"))
     );
@@ -227,7 +274,8 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
     // table
     const left = el("div",{});
     if(!m.params.length){
-      left.append(el("p",{class:"empty"},"No parameters yet. Add one below, e.g. Rated current, Rs, Ld, Lq, Kv."));
+      left.append(el("p",{class:"empty"}, isAdmin ? "No parameters yet. Add one below, e.g. Rated current, Rs, Ld, Lq, Kv."
+                                                   : "No parameters yet. An admin needs to add them."));
     } else {
       const tbody = el("tbody");
       m.params.forEach(p=>{
@@ -247,8 +295,8 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
         row.append(
           el("td",{class:"name"},p.name),
           el("td",{},cur), el("td",{},prev), dEl,
-          el("td",{}, el("button",{class:"danger","aria-label":`Remove ${p.name}`,onclick:()=>{
-            m.params = m.params.filter(x=>x.id!==p.id); touch(m);
+          el("td",{}, !isAdmin ? "" : el("button",{class:"danger","aria-label":`Remove ${p.name}`,onclick:()=>{
+            if(confirm(`Remove "${p.name}"?`)){ m.params = m.params.filter(x=>x.id!==p.id); touch(m); }
           }},"Remove"))
         );
         update();
@@ -272,7 +320,7 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
       touch(m); toast("Parameter added");
     };
     [nIn,cIn,pIn].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}}));
-    left.append(el("div",{class:"add-param"}, nIn, cIn, pIn, el("button",{class:"primary",onclick:add},"Add parameter")));
+    if(isAdmin) left.append(el("div",{class:"add-param"}, nIn, cIn, pIn, el("button",{class:"primary",onclick:add},"Add parameter")));
 
     if(m.params.length){
       left.append(el("div",{class:"actions"},
@@ -286,7 +334,7 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
     // QR
     const qrDiv = el("div",{class:"qr",role:"img","aria-label":`QR code for ${m.name}`});
     const url = motorUrl(m);
-    const qrbox = el("div",{class:"qrbox"}, qrDiv, el("p",{},"Scan to view and edit"),
+    const qrbox = el("div",{class:"qrbox"}, qrDiv, el("p",{}, singleId ? "Scan to open these values" : "Scan to view and edit"),
       el("button",{onclick:()=>{
         navigator.clipboard?.writeText(url).then(()=>toast("Link copied"),()=>prompt("Copy this link",url));
       }},"Copy link"),
@@ -313,32 +361,30 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
 
   // ---------- scanned link handling ----------
   function handleHash(){
-    const m = location.hash.match(/^#m=(.+)$/);
     const banner = $("#banner"); banner.innerHTML="";
-    if(!m) return;
+    const mm = location.hash.match(/^#m=(.+)$/);
+    if(!mm){ singleId=null; return; }
     let scanned;
-    try{ scanned = decodeMotor(m[1]); }
-    catch(e){ banner.append(el("div",{class:"banner"},el("p",{},"This QR link is damaged and could not be read. Scan it again or ask for a fresh code."))); return; }
-
+    try{ scanned = decodeMotor(mm[1]); }
+    catch(e){
+      singleId=null;
+      banner.append(el("div",{class:"banner"},el("p",{},"This QR link is damaged and could not be read. Scan it again or ask for a fresh code.")));
+      return;
+    }
+    singleId = scanned.id;
     const existing = findMotor(scanned.id);
     if(!existing){
       motors.unshift({...scanned, created:now()});
       save();
-      banner.append(el("div",{class:"banner"},
-        el("p",{},`Loaded "${scanned.name}" from QR and saved it on this device. Edits here stay on this device; use Copy link or Save QR to share the updated values.`)));
     } else if((scanned.updated||"") > (existing.updated||"")){
+      // QR is newer than this device: take the QR values
+      Object.assign(existing,{name:scanned.name,params:scanned.params,updated:scanned.updated});
+      save();
+    } else if((existing.updated||"") > (scanned.updated||"")){
       banner.append(el("div",{class:"banner"},
-        el("p",{},`The QR has newer values for "${scanned.name}" (${fmtDate(scanned.updated)}) than this device (${fmtDate(existing.updated)}).`),
-        el("button",{class:"primary",onclick:()=>{
-          Object.assign(existing,{name:scanned.name,params:scanned.params,updated:scanned.updated});
-          save(); history.replaceState(null,"",location.pathname); banner.innerHTML=""; render(); toast("Updated from QR");
-        }},"Use QR values"), " ",
-        el("button",{onclick:()=>{history.replaceState(null,"",location.pathname); banner.innerHTML="";}},"Keep this device's values")));
+        el("p",{},`Showing the newer values saved on this device (${fmtDate(existing.updated)}). The printed QR holds older values from ${fmtDate(scanned.updated)}.`)));
+      history.replaceState(null,"","#m="+encodeMotor(existing));
     }
-    // move scanned motor to top and scroll to it
-    motors.sort((a,b)=> a.id===scanned.id ? -1 : b.id===scanned.id ? 1 : 0);
-    if(existing && !banner.children.length) history.replaceState(null,"",location.pathname);
-    else if(!existing) history.replaceState(null,"",location.pathname);
   }
 
   // ---------- backup ----------
@@ -357,6 +403,30 @@ tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
       motors = data; save(); render(); toast("Backup imported");
     }catch(_){ toast("That file isn't a valid tracker backup."); }
     e.target.value="";
+  });
+
+  $("#adminBtn").addEventListener("click", async ()=>{
+    if(isAdmin){
+      isAdmin=false; try{sessionStorage.removeItem("motorTracker.admin");}catch(e){}
+      render(); toast("Logged out"); return;
+    }
+    const pin = prompt("Enter admin PIN");
+    if(pin===null) return;
+    if(await sha256(pin) === ADMIN_PIN_HASH){
+      isAdmin=true; try{sessionStorage.setItem("motorTracker.admin","1");}catch(e){}
+      render(); toast("Logged in as admin");
+    } else toast("Wrong PIN");
+  });
+  $("#pinBtn").addEventListener("click", async ()=>{
+    const p1 = prompt("New admin PIN"); if(!p1) return;
+    const p2 = prompt("Type the new PIN again"); if(p1!==p2){ toast("PINs don't match"); return; }
+    const line = `const ADMIN_PIN_HASH = "${await sha256(p1)}";`;
+    $("#pinPanel").innerHTML="";
+    $("#pinPanel").append(el("div",{class:"banner"},
+      el("p",{},"To change the PIN on every device, open index.html on GitHub, replace the ADMIN_PIN_HASH line near the top of the script with this line, and commit:"),
+      el("div",{class:"pinline"},line),
+      el("p",{style:"margin-top:8px"}, el("button",{onclick:()=>{navigator.clipboard?.writeText(line).then(()=>toast("Line copied"));}},"Copy line"), " ",
+        el("button",{class:"ghost",onclick:()=>{$("#pinPanel").innerHTML="";}},"Close"))));
   });
 
   window.addEventListener("hashchange",()=>{handleHash();render();});
