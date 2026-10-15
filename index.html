@@ -207,8 +207,7 @@ const CONFIG = {
   path:   "motors.json"                // data file in the repo
 };
 // SHA-256 of the admin PIN (default PIN: 1234). Change it from Admin > Change PIN.
-//const ADMIN_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; //1234
-const ADMIN_PIN_HASH = "03752e796bffa919c2198c1b067fdb88026bea3a9dec4f6cbd9a17be9d9ee0a0"; //my name all small
+const ADMIN_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 /* ===================================================================== */
 
 const API = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.path}`;
@@ -290,7 +289,10 @@ async function ghWrite(d,sha,message){
 }
 // Read the latest file, apply the change, write it back. Retries if someone saved at the same time.
 async function mutate(fn,message){
-  if(!token){ openKeyDialog(); throw new Error("This device can't save yet."); }
+  if(!token){
+    if(isAdmin){ openKeyDialog(); throw new Error("Set up edit access first."); }
+    throw new Error("This device is view only. Ask the admin for an edit link.");
+  }
   setSync("busy","Saving…"); busy=true;
   try{
     for(let attempt=0;attempt<4;attempt++){
@@ -321,6 +323,7 @@ function render(){
   document.body.classList.toggle("single",!!singleId);
   $("#adminBtn").classList.toggle("on",isAdmin);
   $("#adminBtn").lastElementChild.textContent=isAdmin?"Admin on":"Admin";
+  $("#keyBtn").hidden=!isAdmin;   // edit access is managed by the admin only
   $("#keyBtn").classList.toggle("on",!!token);
   $("#keyBtn").lastElementChild.textContent=token?"Can edit":"Edit access";
   renderNotices();
@@ -353,7 +356,7 @@ function renderNotices(){
   const n=$("#notices"); n.innerHTML="";
   if(lastError) n.append(el("div",{class:"notice"},el("div",{},el("p",{},lastError),
     el("div",{class:"acts"},el("button",{class:"btn",onclick:()=>load()},"Try again")))));
-  if(!token && loaded && !lastError) n.append(el("div",{class:"notice"},el("div",{},
+  if(isAdmin && !token && loaded && !lastError) n.append(el("div",{class:"notice"},el("div",{},
     el("p",{},"You can view values on this device. To save changes, this device needs edit access."),
     el("div",{class:"acts"},el("button",{class:"btn primary",onclick:openKeyDialog},"Set up edit access")))));
   const old=oldLocal();
@@ -460,7 +463,7 @@ async function saveDraft(m){
   }catch(e){ fail(e); }
 }
 function newMotor(){
-  dialog("New motor",[el("label",{for:"nm"},"Motor name"),el("input",{class:"f",id:"nm",placeholder:"e.g. Pi_Wind_Pro_M1 ",autocomplete:"off"})],
+  dialog("New motor",[el("label",{for:"nm"},"Motor name"),el("input",{class:"f",id:"nm",placeholder:"e.g. Flyer Frame spindle M1",autocomplete:"off"})],
     "Create motor", async()=>{
       const name=$("#nm").value.trim(); if(!name){ $("#nm").focus(); return false; }
       await mutate(d=>{ d.motors.unshift({id:uid(),name,params:[],created:now(),updated:now()}); },`Add motor ${name}`);
