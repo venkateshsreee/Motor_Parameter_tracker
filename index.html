@@ -459,7 +459,7 @@ async function saveDraft(m){
   }catch(e){ fail(e); }
 }
 function newMotor(){
-  dialog("New motor",[el("label",{for:"nm"},"Motor name"),el("input",{class:"f",id:"nm",placeholder:"e.g. Flyer Frame spindle M1",autocomplete:"off"})],
+  dialog("New motor",[el("label",{for:"nm"},"Motor name"),el("input",{class:"f",id:"nm",placeholder:"e.g. Pi_Wind_Pro_M1 ",autocomplete:"off"})],
     "Create motor", async()=>{
       const name=$("#nm").value.trim(); if(!name){ $("#nm").focus(); return false; }
       await mutate(d=>{ d.motors.unshift({id:uid(),name,params:[],created:now(),updated:now()}); },`Add motor ${name}`);
