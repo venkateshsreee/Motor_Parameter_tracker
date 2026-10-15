@@ -2,6 +2,13 @@
   "version": 1,
   "motors": [
     {
+      "id": "mv98h576fcz96",
+      "name": "Pi_Wind_Pro_M9",
+      "params": [],
+      "created": "2026-10-15T07:44:54.930Z",
+      "updated": "2026-10-15T07:44:54.930Z"
+    },
+    {
       "id": "mv98h10f6ijkn",
       "name": "Pi_Wind_Pro_M8",
       "params": [],
