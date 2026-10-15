@@ -60,9 +60,16 @@
     {
       "id": "mv98g4hsmrz49",
       "name": "Pi_Wind_Pro_M4",
-      "params": [],
+      "params": [
+        {
+          "id": "mv9ck13rkafux",
+          "name": "Mosfet track burned",
+          "current": "",
+          "previous": ""
+        }
+      ],
       "created": "2026-10-15T07:44:07.360Z",
-      "updated": "2026-10-15T07:44:07.360Z"
+      "updated": "2026-10-15T09:39:08.056Z"
     },
     {
       "id": "mv98fzbj72fnq",
