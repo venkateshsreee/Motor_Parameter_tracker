@@ -170,9 +170,16 @@
     {
       "id": "mv98c8aff3z2y",
       "name": "Pi_Wind_Pro_M1",
-      "params": [],
+      "params": [
+        {
+          "id": "mv9hjnqoaqevf",
+          "name": "Align Tim2 counter",
+          "current": "1196",
+          "previous": ""
+        }
+      ],
       "created": "2026-10-15T07:41:05.655Z",
-      "updated": "2026-10-15T07:43:38.973Z"
+      "updated": "2026-10-15T11:58:48.816Z"
     },
     {
       "id": "mv9866bypa4ml",
