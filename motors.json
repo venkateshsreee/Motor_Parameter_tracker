@@ -3,10 +3,10 @@
   "motors": [
     {
       "id": "mv98c8aff3z2y",
-      "name": "Pi_Wind_Pro_Motor1",
+      "name": "Pi_Wind_Pro_M1",
       "params": [],
       "created": "2026-10-15T07:41:05.655Z",
-      "updated": "2026-10-15T07:41:05.655Z"
+      "updated": "2026-10-15T07:43:38.973Z"
     },
     {
       "id": "mv9866bypa4ml",
