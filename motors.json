@@ -46,9 +46,16 @@
     {
       "id": "mv98gh86wfvii",
       "name": "Pi_Wind_Pro_M6",
-      "params": [],
+      "params": [
+        {
+          "id": "mv9cpqgtrem8v",
+          "name": "fuse shorted",
+          "current": "",
+          "previous": ""
+        }
+      ],
       "created": "2026-10-15T07:44:23.862Z",
-      "updated": "2026-10-15T07:44:23.862Z"
+      "updated": "2026-10-15T09:43:34.205Z"
     },
     {
       "id": "mv98g92gly6si",
