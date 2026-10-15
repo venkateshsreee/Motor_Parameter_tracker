@@ -190,10 +190,16 @@
           "name": "Align Tim2 counter",
           "current": "498",
           "previous": ""
+        },
+        {
+          "id": "mv9hjzls0erxc",
+          "name": "fuse shorted",
+          "current": "",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:36:23.182Z",
-      "updated": "2026-10-15T11:25:13.701Z"
+      "updated": "2026-10-15T11:59:04.192Z"
     }
   ]
 }
