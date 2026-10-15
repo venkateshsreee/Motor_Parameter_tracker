@@ -30,10 +30,16 @@
           "name": "Align Tim2 counter",
           "current": "1465",
           "previous": ""
+        },
+        {
+          "id": "mv9ijmzgfnp3y",
+          "name": "fuse shorted",
+          "current": "",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:54.930Z",
-      "updated": "2026-10-15T12:26:25.627Z"
+      "updated": "2026-10-15T12:26:47.452Z"
     },
     {
       "id": "mv98h10f6ijkn",
