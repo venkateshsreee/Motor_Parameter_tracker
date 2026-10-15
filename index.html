@@ -4,434 +4,627 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Motor Parameter Tracker</title>
+<meta name="theme-color" content="#123A5E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
-  --steel:#DDE2E5; --plate:#F5F6F4; --ink:#1E2A31; --muted:#5B6870;
-  --line:#AEB8BE; --blue:#245A8C; --amber:#D99A00; --down:#B5412F; --up:#2E7D4F;
-  --rivet:#9AA4AA;
-  --cond:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
-  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#EDF1F5; --surface:#FFFFFF; --surface-2:#F5F7FA; --ink:#14273A; --muted:#5E6E7E;
+  --line:#D5DDE5; --line-strong:#B7C3CF;
+  --brand:#123A5E; --brand-ink:#FFFFFF; --primary:#1D6FB8; --primary-ink:#FFFFFF;
+  --amber:#F2A900; --up:#1E8A52; --down:#C23B2E; --focus:#F2A900;
+  --shadow:0 1px 2px rgba(20,39,58,.06),0 4px 14px rgba(20,39,58,.06);
+  --head:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --steel:#1A2126; --plate:#252E34; --ink:#E4E8EA; --muted:#9AA6AD;
-    --line:#46525A; --blue:#6FA3D6; --amber:#F0B429; --down:#E07763; --up:#5DBB85; --rivet:#55616A;
+    --bg:#0F1A24; --surface:#17242F; --surface-2:#1D2C39; --ink:#E6EDF3; --muted:#9AABBB;
+    --line:#2A3B4A; --line-strong:#3A4E60; --brand:#0B2741; --primary:#4C9BE0; --primary-ink:#06121D;
+    --up:#4CC487; --down:#F07766; --shadow:none;
   }
 }
 :root[data-theme="dark"]{
-  --steel:#1A2126; --plate:#252E34; --ink:#E4E8EA; --muted:#9AA6AD;
-  --line:#46525A; --blue:#6FA3D6; --amber:#F0B429; --down:#E07763; --up:#5DBB85; --rivet:#55616A;
+  --bg:#0F1A24; --surface:#17242F; --surface-2:#1D2C39; --ink:#E6EDF3; --muted:#9AABBB;
+  --line:#2A3B4A; --line-strong:#3A4E60; --brand:#0B2741; --primary:#4C9BE0; --primary-ink:#06121D;
+  --up:#4CC487; --down:#F07766; --shadow:none;
 }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--steel);color:var(--ink);font:16px/1.5 var(--body)}
-.wrap{max-width:980px;margin:0 auto;padding:24px 16px 64px}
-header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
-h1{font-family:var(--cond);font-weight:700;font-size:2rem;line-height:1.1;margin:0;letter-spacing:.01em}
-.sub{color:var(--muted);margin:4px 0 0;font-size:.95rem}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);min-height:100%;display:flex;flex-direction:column}
 button,input{font:inherit;color:inherit}
-button{cursor:pointer;border:1px solid var(--line);background:var(--plate);border-radius:4px;padding:8px 14px}
-button.primary{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
-button.ghost{background:transparent}
-button.danger{color:var(--down);border-color:transparent;background:transparent}
-button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-input{background:var(--steel);border:1px solid var(--line);border-radius:3px;padding:7px 9px;width:100%;min-width:0}
-.new-motor{display:flex;gap:8px;margin-bottom:28px}
-.new-motor input{flex:1;background:var(--plate)}
-.tools{display:flex;gap:8px;flex-wrap:wrap}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
-/* Motor card styled as a rating plate */
-.plate{position:relative;background:var(--plate);border:2px solid var(--line);border-radius:6px;
-  padding:22px 26px 20px;margin-bottom:24px}
-.plate::before,.plate::after,.plate .r1,.plate .r2{content:"";position:absolute;width:10px;height:10px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,var(--plate),var(--rivet) 70%);border:1px solid var(--rivet)}
-.plate::before{top:8px;left:8px}.plate::after{top:8px;right:8px}
-.plate .r1{bottom:8px;left:8px}.plate .r2{bottom:8px;right:8px}
-.plate-head{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:14px}
-.plate-name{font-family:var(--cond);font-weight:700;font-size:1.6rem;line-height:1.15;margin:0;
-  text-transform:none;word-break:break-word}
-.plate-name input{font-family:var(--cond);font-weight:700;font-size:1.4rem}
-.meta{color:var(--muted);font-size:.85rem}
-.body{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
-@media (max-width:680px){.body{grid-template-columns:1fr}.qrbox{justify-self:start}}
+/* ---------- top bar ---------- */
+.bar{background:var(--brand);color:var(--brand-ink);position:sticky;top:0;z-index:20;
+  padding-top:env(safe-area-inset-top,0px);border-bottom:4px solid var(--amber)}
+.bar-in{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto;color:inherit;text-decoration:none}
+.mark{width:40px;height:40px;border-radius:50%;border:2px solid var(--amber);display:grid;place-items:center}
+.mark svg{width:24px;height:24px;stroke:var(--amber)}
+.brand h1{font-family:var(--head);font-weight:700;font-size:1.45rem;line-height:1;margin:0;letter-spacing:.01em}
+.brand small{display:block;font-size:.8rem;opacity:.75;margin-top:3px;font-weight:500}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;padding:5px 11px;border-radius:999px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:#8FA3B6;display:inline-block}
+.pill.ok i{background:#4CC487}.pill.busy i{background:var(--amber)}.pill.err i{background:#F07766}
+.barbtn{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid rgba(255,255,255,.28);
+  color:var(--brand-ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500}
+.barbtn:hover{background:rgba(255,255,255,.08)}
+.barbtn.on{background:var(--amber);border-color:var(--amber);color:#14273A}
 
-.tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:440px}
-th{font-family:var(--cond);font-weight:500;text-align:left;color:var(--muted);font-size:.9rem;padding:4px 6px;border-bottom:1px solid var(--line)}
-td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle}
-td.name{font-weight:600;min-width:120px}
-td.delta{font-family:var(--cond);font-size:.95rem;white-space:nowrap;min-width:70px}
-.up{color:var(--up)}.down{color:var(--down)}.same{color:var(--muted)}
-tr.changed td.name{box-shadow:inset 4px 0 0 var(--amber);padding-left:10px}
-.add-param{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-top:12px}
-@media (max-width:520px){.add-param{grid-template-columns:1fr 1fr}.add-param input:first-child{grid-column:1/-1}}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.empty{color:var(--muted);padding:10px 0;margin:0}
+/* ---------- layout ---------- */
+main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:24px 20px 48px}
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.search{flex:1;min-width:220px;position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search input.f{padding-left:40px}
+.count{color:var(--muted);font-size:.92rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:20px;align-items:start}
+.single .grid{grid-template-columns:minmax(0,760px);justify-content:center}
 
-.qrbox{text-align:center;background:#fff;padding:10px;border:1px solid var(--line);border-radius:4px}
-.qrbox .qr{width:150px;height:150px}
-.qrbox .qr img,.qrbox .qr canvas{width:150px!important;height:150px!important}
-.qrbox p{margin:6px 0 0;font-size:.8rem;color:#5B6870}
-.qrbox button{margin-top:6px;font-size:.8rem;padding:4px 8px;color:#1E2A31;background:#fff}
+/* ---------- controls ---------- */
+input.f{width:100%;min-width:0;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:9px 12px}
+input.f:disabled{background:var(--surface-2);border-color:var(--line);color:var(--ink);opacity:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;padding:9px 15px;cursor:pointer;
+  border:1px solid var(--line-strong);background:var(--surface);font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--primary)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--muted);padding:7px 9px}
+.btn.quiet:hover{color:var(--ink);background:var(--surface-2)}
+.btn.danger{color:var(--down)}
+.btn.danger:hover{border-color:var(--down)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 
-.banner{background:var(--plate);border-left:5px solid var(--amber);padding:12px 16px;margin-bottom:20px;border-radius:3px}
-.banner p{margin:0 0 8px}
-.zero{text-align:center;padding:48px 16px;color:var(--muted);border:2px dashed var(--line);border-radius:6px}
-.adminbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.badge{font-family:var(--cond);font-size:.85rem;background:var(--amber);color:#1E2A31;padding:2px 8px;border-radius:3px}
-.backlink{display:inline-block;margin-bottom:16px;color:var(--blue)}
-.single .plate{border-width:3px}
-.pinline{font-family:Consolas,monospace;font-size:.8rem;word-break:break-all;background:var(--steel);padding:8px;border-radius:3px;user-select:all}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
-  background:var(--ink);color:var(--plate);padding:10px 16px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.show{opacity:1}
+/* ---------- motor card ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.card-head{display:flex;gap:12px;align-items:flex-start;padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.card-head .ttl{flex:1;min-width:0}
+.card-head h2{font-family:var(--head);font-weight:700;font-size:1.45rem;line-height:1.15;margin:0;word-break:break-word}
+.meta{color:var(--muted);font-size:.86rem;margin-top:3px}
+.head-actions{display:flex;gap:2px}
+.params{padding:6px 20px 4px}
+.prow{display:grid;grid-template-columns:minmax(110px,1.4fr) minmax(0,1fr) minmax(0,1fr) 104px 36px;gap:10px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow.hdr{color:var(--muted);font-size:.8rem;font-weight:600;padding:8px 0 6px}
+.pname{font-weight:600;word-break:break-word}
+.prow input.f{font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:500}
+.prow input.dirty{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+.chg{font-family:var(--head);font-weight:600;font-size:.95rem;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.chg.up{color:var(--up)}.chg.down{color:var(--down)}.chg.same{color:var(--muted);font-weight:500}
+.lbl{display:none}
+.rm{visibility:hidden}.admin .rm{visibility:visible}
+.empty{color:var(--muted);padding:18px 0;margin:0}
+.addp{display:grid;grid-template-columns:minmax(110px,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:10px;padding:14px 20px;background:var(--surface-2);border-top:1px dashed var(--line-strong)}
+.card-foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line)}
+.card-foot .note{color:var(--muted);font-size:.86rem;margin-right:auto}
+.card-foot .note.warn{color:var(--ink);font-weight:600}
+.card-foot .note.warn::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:7px}
+.qrthumb{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 10px 4px 4px;cursor:pointer;color:#14273A;font-weight:600}
+.qrthumb .q{width:44px;height:44px}
+.qrthumb .q img,.qrthumb .q canvas{width:44px!important;height:44px!important}
+
+@media (max-width:640px){
+  .prow{grid-template-columns:1fr 1fr;grid-template-areas:"n n" "c p" "d r";row-gap:8px}
+  .prow.hdr{display:none}
+  .prow .pname{grid-area:n}
+  .prow .c{grid-area:c}.prow .p{grid-area:p}
+  .prow .chg{grid-area:d;text-align:left}.prow .rm{grid-area:r;justify-self:end}
+  .prow .lbl{display:block;font-size:.78rem;color:var(--muted);margin-bottom:3px;font-weight:500}
+  .addp{grid-template-columns:1fr 1fr}.addp .n{grid-column:1/-1}
+  .bar-in{padding:10px 14px}.brand small{display:none}
+  main{padding:18px 14px 40px}
+}
+
+/* ---------- notices ---------- */
+.notice{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
+  border-left:4px solid var(--amber);border-radius:10px;padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow)}
+.notice p{margin:0}
+.notice .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.zero{text-align:center;padding:56px 20px;border:2px dashed var(--line-strong);border-radius:12px;color:var(--muted)}
+.zero h2{font-family:var(--head);color:var(--ink);margin:0 0 6px;font-size:1.4rem}
+.backlink{display:inline-flex;align-items:center;gap:6px;color:var(--primary);text-decoration:none;font-weight:600;margin-bottom:16px}
+
+/* ---------- dialog ---------- */
+dialog{border:0;border-radius:14px;padding:0;width:min(440px,calc(100vw - 32px));background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,24,38,.55)}
+.dlg-h{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dlg-h h3{font-family:var(--head);font-size:1.3rem;margin:0;flex:1}
+.dlg-b{padding:18px 20px}
+.dlg-b p{margin:0 0 12px;color:var(--muted)}
+.dlg-b label{display:block;font-weight:600;margin:12px 0 6px}
+.dlg-f{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.bigqr{background:#fff;border-radius:10px;padding:16px;display:grid;place-items:center;border:1px solid var(--line)}
+.bigqr .q img,.bigqr .q canvas{width:240px!important;height:240px!important}
+.bigqr .cap{color:#14273A;font-family:var(--head);font-weight:700;font-size:1.15rem;margin-top:10px;text-align:center}
+.code{font-family:Consolas,"Courier New",monospace;font-size:.8rem;word-break:break-all;background:var(--surface-2);border:1px solid var(--line);padding:10px;border-radius:8px;user-select:all}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem;text-align:center;padding:18px 20px calc(18px + env(safe-area-inset-bottom,0px))}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);z-index:50;
+  background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;font-weight:500;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
-@media print{.tools,.new-motor,.add-param,.actions,.qrbox button,.danger{display:none}}
+@media print{
+  .bar,.toolbar,footer,.card-foot,.addp,.head-actions,.notice{display:none}
+  body{background:#fff}.card{box-shadow:none;break-inside:avoid}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Motor Parameter Tracker</h1>
-      <p class="sub" id="subline">Record current and previous readings for each motor. Scan a motor's QR to view or edit it on another device.</p>
+
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="./">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span>
+      <span><h1>Motor Parameter Tracker</h1><small>Current and previous readings for every motor</small></span>
+    </a>
+    <span class="pill" id="sync"><i></i><span>Loading…</span></span>
+    <button class="barbtn" id="refreshBtn" title="Load the latest values"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg><span>Refresh</span></button>
+    <button class="barbtn" id="keyBtn"><svg class="i" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/></svg><span>Edit access</span></button>
+    <button class="barbtn" id="adminBtn"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin</span></button>
+  </div>
+</header>
+
+<main id="main">
+  <div id="notices"></div>
+  <div class="toolbar" id="toolbar" hidden>
+    <div class="search">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="f" id="search" type="search" placeholder="Search motors or parameters" aria-label="Search motors">
     </div>
-    <div class="adminbar">
-      <span class="badge" id="adminBadge" hidden>Admin</span>
-      <button id="exportBtn" class="ghost" hidden>Export backup</button>
-      <button id="importBtn" class="ghost" hidden>Import backup</button>
-      <button id="pinBtn" class="ghost" hidden>Change PIN</button>
-      <button id="adminBtn" class="ghost">Admin login</button>
-      <input type="file" id="importFile" accept="application/json" hidden>
-    </div>
-  </header>
+    <span class="count" id="count"></span>
+    <button class="btn" id="exportBtn" hidden>Export backup</button>
+    <button class="btn" id="shareKeyBtn" hidden>Share edit link</button>
+    <button class="btn primary" id="newMotorBtn" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New motor</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
 
-  <div id="banner"></div>
-  <div id="pinPanel"></div>
+<footer>© 2026 benkateshSR. All rights reserved.</footer>
 
-  <form class="new-motor" id="newMotorForm" hidden>
-    <input id="newMotorName" placeholder="Motor name, e.g. Flyer Frame spindle M1" aria-label="Motor name" required>
-    <button class="primary" type="submit">Create motor</button>
-  </form>
-
-  <main id="list"></main>
-</div>
+<dialog id="dlg"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function(){
-  // ===== ADMIN PIN =====
-  // SHA-256 hash of the admin PIN. Default PIN is 1234.
-  // To change: log in as admin, select "Change PIN", and paste the new line here.
-  const ADMIN_PIN_HASH = "03752e796bffa919c2198c1b067fdb88026bea3a9dec4f6cbd9a17be9d9ee0a0";
+/* =====================================================================
+   SETUP
+   ===================================================================== */
+const CONFIG = {
+  owner:  "venkateshsreee",            // GitHub username
+  repo:   "Motor_Parameter_tracker",   // repository name
+  branch: "main",
+  path:   "motors.json"                // data file in the repo
+};
+// SHA-256 of the admin PIN (default PIN: 1234). Change it from Admin > Change PIN.
+const ADMIN_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+/* ===================================================================== */
 
-  const KEY = "motorTracker.v1";
-  let motors = load();
-  let isAdmin = (()=>{ try{ return sessionStorage.getItem("motorTracker.admin")==="1"; }catch(e){ return false; } })();
-  let singleId = null;   // set when the page is opened from a motor QR
+const API = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.path}`;
+const RAW = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${CONFIG.path}`;
+const PAGE = location.origin + location.pathname;
+const LS = { get(k){ try{return localStorage.getItem(k);}catch(e){return null;} }, set(k,v){ try{localStorage.setItem(k,v);}catch(e){} }, del(k){ try{localStorage.removeItem(k);}catch(e){} } };
+const SS = { get(k){ try{return sessionStorage.getItem(k);}catch(e){return null;} }, set(k,v){ try{sessionStorage.setItem(k,v);}catch(e){} }, del(k){ try{sessionStorage.removeItem(k);}catch(e){} } };
 
-  async function sha256(t){
-    const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
-    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
-  }
+let token = LS.get("mpt.token") || "";
+let isAdmin = SS.get("mpt.admin")==="1";
+let data = {version:1, motors:[]};
+let loaded = false, busy = false, lastError = "";
+const drafts = {};            // motorId -> { paramId -> {current, previous} }
+const singleId = new URLSearchParams(location.search).get("m");
 
-  // ---------- storage ----------
-  function load(){
-    try{ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : []; }
-    catch(e){ return []; }
+// ---------- small helpers ----------
+const $ = s => document.querySelector(s);
+const ICON = {
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  back:'<path d="M15 18 9 12l6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>'
+};
+function icon(n){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("class","i"); s.setAttribute("aria-hidden","true"); s.innerHTML=ICON[n]; return s; }
+function el(tag,attrs={},...kids){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){
+    if(k==="class") e.className=v;
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2),v);
+    else if(v===true) e.setAttribute(k,"");
+    else if(v!==false && v!=null) e.setAttribute(k,v);
   }
-  function save(){
-    try{ localStorage.setItem(KEY, JSON.stringify(motors)); }
-    catch(e){ toast("Could not save on this device — storage is blocked."); }
-  }
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-  const now = () => new Date().toISOString();
+  kids.flat().forEach(k=>{ if(k!==""&&k!=null&&k!==false) e.append(k instanceof Node?k:document.createTextNode(k)); });
+  return e;
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const now=()=>new Date().toISOString();
+const fmtDate=iso=>iso?new Date(iso).toLocaleString([], {dateStyle:"medium",timeStyle:"short"}):"never";
+function delta(cur,prev){
+  cur=(cur??"").toString(); prev=(prev??"").toString();
+  const a=parseFloat(cur), b=parseFloat(prev);
+  if(cur===""||prev==="") return {txt:"",cls:"same"};
+  if(isNaN(a)||isNaN(b)) return {txt:cur===prev?"same":"changed",cls:"same"};
+  const d=a-b; if(d===0) return {txt:"no change",cls:"same"};
+  const pct=b!==0?` ${(d/Math.abs(b)*100).toFixed(1)}%`:"";
+  return {txt:(d>0?"▲ +":"▼ ")+ +d.toFixed(4)+pct, cls:d>0?"up":"down"};
+}
+async function sha256(t){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function b64dec(s){ const bin=atob(s.replace(/\s/g,"")); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
+function b64enc(s){ const by=new TextEncoder().encode(s); let bin=""; for(let i=0;i<by.length;i+=0x8000) bin+=String.fromCharCode(...by.subarray(i,i+0x8000)); return btoa(bin); }
+function normalize(d){ if(Array.isArray(d)) d={version:1,motors:d}; d=d&&typeof d==="object"?d:{}; d.motors=Array.isArray(d.motors)?d.motors:[]; d.motors.forEach(m=>{m.params=Array.isArray(m.params)?m.params:[];}); return d; }
 
-  // ---------- URL encoding for QR (UTF-8 safe base64url) ----------
-  function encodeMotor(m){
-    const slim = {i:m.id, n:m.name, u:m.updated, p:m.params.map(p=>[p.name,p.current,p.previous])};
-    const bytes = new TextEncoder().encode(JSON.stringify(slim));
-    let bin = ""; bytes.forEach(b=>bin += String.fromCharCode(b));
-    return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-  }
-  function decodeMotor(s){
-    s = s.replace(/-/g,"+").replace(/_/g,"/");
-    while(s.length % 4) s += "=";
-    const bin = atob(s);
-    const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
-    const o = JSON.parse(new TextDecoder().decode(bytes));
-    return {id:o.i, name:o.n, updated:o.u, params:(o.p||[]).map(a=>({id:uid(),name:a[0],current:a[1],previous:a[2]}))};
-  }
-  function motorUrl(m){
-    return location.origin + location.pathname + "#m=" + encodeMotor(m);
-  }
-
-  // ---------- helpers ----------
-  const $ = s => document.querySelector(s);
-  function el(tag, attrs={}, ...kids){
-    const e = document.createElement(tag);
-    for(const [k,v] of Object.entries(attrs)){
-      if(k==="class") e.className=v;
-      else if(k.startsWith("on")) e.addEventListener(k.slice(2),v);
-      else if(v!==undefined && v!==null) e.setAttribute(k,v);
+// ---------- GitHub storage ----------
+async function ghRead(){
+  const headers={Accept:"application/vnd.github+json"};
+  if(token) headers.Authorization="Bearer "+token;
+  let r;
+  try{ r=await fetch(`${API}?ref=${CONFIG.branch}&_=${Date.now()}`,{headers,cache:"no-store"}); }
+  catch(e){ throw new Error("No internet connection."); }
+  if(r.status===404) return {d:{version:1,motors:[]},sha:null};
+  if(r.status===401){ throw new Error("The edit key on this device is invalid or expired."); }
+  if(r.ok){ const j=await r.json(); return {d:normalize(JSON.parse(b64dec(j.content))),sha:j.sha}; }
+  // Rate-limited without a key: fall back to the raw file (may be a few minutes old)
+  const raw=await fetch(`${RAW}?_=${Date.now()}`,{cache:"no-store"});
+  if(raw.status===404) return {d:{version:1,motors:[]},sha:null};
+  if(!raw.ok) throw new Error("Couldn't load motors.json (HTTP "+r.status+").");
+  return {d:normalize(await raw.json()),sha:null};
+}
+async function ghWrite(d,sha,message){
+  const body={message,content:b64enc(JSON.stringify(d,null,2)+"\n"),branch:CONFIG.branch};
+  if(sha) body.sha=sha;
+  const r=await fetch(API,{method:"PUT",headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(r.status===409||r.status===422){ const e=new Error("conflict"); e.conflict=true; throw e; }
+  if(r.status===401) throw new Error("The edit key on this device is invalid or expired.");
+  if(r.status===403||r.status===404) throw new Error("This edit key isn't allowed to change "+CONFIG.repo+". Check it has Contents: Read and write.");
+  if(!r.ok) throw new Error("Save failed (HTTP "+r.status+").");
+}
+// Read the latest file, apply the change, write it back. Retries if someone saved at the same time.
+async function mutate(fn,message){
+  if(!token){ openKeyDialog(); throw new Error("This device can't save yet."); }
+  setSync("busy","Saving…"); busy=true;
+  try{
+    for(let attempt=0;attempt<4;attempt++){
+      const {d,sha}=await ghRead();
+      fn(d);
+      try{ await ghWrite(d,sha,message); data=d; setSync("ok","Saved "+new Date().toLocaleTimeString([], {timeStyle:"short"})); return; }
+      catch(e){ if(!e.conflict) throw e; await new Promise(r=>setTimeout(r,400+attempt*500)); }
     }
-    kids.flat().forEach(k=>e.append(k instanceof Node ? k : document.createTextNode(k)));
-    return e;
-  }
-  function toast(msg){
-    const t=$("#toast"); t.textContent=msg; t.classList.add("show");
-    clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200);
-  }
-  function delta(cur, prev){
-    const a=parseFloat(cur), b=parseFloat(prev);
-    if(cur===""||prev===""||isNaN(a)||isNaN(b)) return {txt: cur!==prev && cur!=="" && prev!=="" ? "changed" : "", cls: cur!==prev ? "same":""};
-    const d=a-b;
-    if(d===0) return {txt:"no change",cls:"same"};
-    const pct = b!==0 ? ` (${(d/Math.abs(b)*100).toFixed(1)}%)` : "";
-    return {txt:(d>0?"+":"")+ +d.toFixed(4) + pct, cls:d>0?"up":"down"};
-  }
-  const fmtDate = iso => iso ? new Date(iso).toLocaleString() : "—";
-
-  // ---------- actions ----------
-  function touch(m){
-    m.updated = now(); save();
-    if(singleId===m.id) history.replaceState(null,"","#m="+encodeMotor(m));
-    render();
-  }
-  function findMotor(id){ return motors.find(m=>m.id===id); }
-
-  $("#newMotorForm").addEventListener("submit", e=>{
-    e.preventDefault();
-    const name = $("#newMotorName").value.trim();
-    if(!name) return;
-    motors.unshift({id:uid(), name, created:now(), updated:now(), params:[]});
-    $("#newMotorName").value="";
-    save(); render(); toast("Motor created");
-  });
-
-  // ---------- render ----------
-  function render(){
-    $("#adminBadge").hidden = !isAdmin;
-    ["#exportBtn","#importBtn","#pinBtn"].forEach(id=>$(id).hidden = !isAdmin);
-    $("#adminBtn").textContent = isAdmin ? "Log out" : "Admin login";
-    $("#newMotorForm").hidden = !isAdmin || !!singleId;
-    if(!isAdmin) $("#pinPanel").innerHTML="";
-
-    const list = $("#list"); list.innerHTML="";
-    document.body.classList.toggle("single", !!singleId);
-
-    if(singleId){
-      const m = findMotor(singleId);
-      $("#subline").textContent = "Edit the values below. Changes are saved on this device.";
-      if(isAdmin) list.append(el("a",{href:location.pathname,class:"backlink"},"Show all motors"));
-      if(m) list.append(plate(m));
-      return;
-    }
-
-    $("#subline").textContent = isAdmin
-      ? "Create motors, set up their parameters, and print each motor's QR."
-      : "Record current and previous readings for each motor.";
-    if(!motors.length){
-      list.append(el("div",{class:"zero"},
-        el("p",{},"No motors yet."),
-        el("p",{}, isAdmin ? "Type a motor name above and select Create motor to start tracking."
-                           : "An admin needs to create motors first. Select Admin login to add one.")));
-      return;
-    }
-    motors.forEach(m=>list.append(plate(m)));
-  }
-
-  function plate(m){
-    const card = el("section",{class:"plate","aria-label":m.name});
-    card.append(el("span",{class:"r1"}),el("span",{class:"r2"}));
-
-    // header with rename
-    const title = el("h2",{class:"plate-name"}, m.name);
-    const head = el("div",{class:"plate-head"},
-      el("div",{}, title, el("div",{class:"meta"}, `${m.params.length} parameter${m.params.length===1?"":"s"}, last updated ${fmtDate(m.updated)}`)),
-      !isAdmin ? "" : el("div",{class:"tools"},
-        el("button",{class:"ghost",onclick:()=>{
-          const n = prompt("Rename motor", m.name);
-          if(n && n.trim()){ m.name=n.trim(); touch(m); }
-        }},"Rename"),
-        el("button",{class:"danger",onclick:()=>{
-          if(confirm(`Delete "${m.name}" and all its parameters?`)){
-            motors = motors.filter(x=>x.id!==m.id); save();
-            if(singleId===m.id){ singleId=null; history.replaceState(null,"",location.pathname); }
-            render(); toast("Motor deleted");
-          }
-        }},"Delete motor"))
-    );
-    card.append(head);
-
-    // table
-    const left = el("div",{});
-    if(!m.params.length){
-      left.append(el("p",{class:"empty"}, isAdmin ? "No parameters yet. Add one below, e.g. Rated current, Rs, Ld, Lq, Kv."
-                                                   : "No parameters yet. An admin needs to add them."));
-    } else {
-      const tbody = el("tbody");
-      m.params.forEach(p=>{
-        const dEl = el("td",{class:"delta"});
-        const row = el("tr",{});
-        const update = ()=>{
-          const d=delta(p.current,p.previous);
-          dEl.textContent=d.txt; dEl.className="delta "+d.cls;
-          row.classList.toggle("changed", p.current!==p.previous && p.previous!=="" );
-        };
-        const cur = el("input",{value:p.current,"aria-label":`${p.name} current value`,inputmode:"decimal"});
-        const prev = el("input",{value:p.previous,"aria-label":`${p.name} previous value`,inputmode:"decimal"});
-        cur.addEventListener("input",()=>{p.current=cur.value; update();});
-        prev.addEventListener("input",()=>{p.previous=prev.value; update();});
-        cur.addEventListener("change",()=>touch(m));
-        prev.addEventListener("change",()=>touch(m));
-        row.append(
-          el("td",{class:"name"},p.name),
-          el("td",{},cur), el("td",{},prev), dEl,
-          el("td",{}, !isAdmin ? "" : el("button",{class:"danger","aria-label":`Remove ${p.name}`,onclick:()=>{
-            if(confirm(`Remove "${p.name}"?`)){ m.params = m.params.filter(x=>x.id!==p.id); touch(m); }
-          }},"Remove"))
-        );
-        update();
-        tbody.append(row);
-      });
-      left.append(el("div",{class:"tablewrap"},
-        el("table",{},
-          el("thead",{},el("tr",{},
-            el("th",{},"Parameter"),el("th",{},"Current value"),el("th",{},"Previous value"),el("th",{},"Change"),el("th",{},""))),
-          tbody)));
-    }
-
-    // add parameter
-    const nIn = el("input",{placeholder:"Parameter name","aria-label":"Parameter name"});
-    const cIn = el("input",{placeholder:"Current","aria-label":"Current value",inputmode:"decimal"});
-    const pIn = el("input",{placeholder:"Previous","aria-label":"Previous value",inputmode:"decimal"});
-    const add = ()=>{
-      const name=nIn.value.trim();
-      if(!name){ nIn.focus(); toast("Enter a parameter name first"); return; }
-      m.params.push({id:uid(),name,current:cIn.value.trim(),previous:pIn.value.trim()});
-      touch(m); toast("Parameter added");
-    };
-    [nIn,cIn,pIn].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}}));
-    if(isAdmin) left.append(el("div",{class:"add-param"}, nIn, cIn, pIn, el("button",{class:"primary",onclick:add},"Add parameter")));
-
-    if(m.params.length){
-      left.append(el("div",{class:"actions"},
-        el("button",{onclick:()=>{
-          if(!confirm("Copy every current value into Previous, so you can enter a fresh reading?")) return;
-          m.params.forEach(p=>{p.previous=p.current;});
-          touch(m); toast("Current values moved to Previous");
-        }},"Start new reading")));
-    }
-
-    // QR
-    const qrDiv = el("div",{class:"qr",role:"img","aria-label":`QR code for ${m.name}`});
-    const url = motorUrl(m);
-    const qrbox = el("div",{class:"qrbox"}, qrDiv, el("p",{}, singleId ? "Scan to open these values" : "Scan to view and edit"),
-      el("button",{onclick:()=>{
-        navigator.clipboard?.writeText(url).then(()=>toast("Link copied"),()=>prompt("Copy this link",url));
-      }},"Copy link"),
-      " ",
-      el("button",{onclick:()=>downloadQR(qrDiv, m.name)},"Save QR"));
-    try{
-      new QRCode(qrDiv,{text:url,width:300,height:300,correctLevel:QRCode.CorrectLevel.L});
-    }catch(e){
-      qrDiv.textContent="Too much data for one QR. Remove some parameters or shorten names.";
-      qrDiv.style.cssText="width:150px;font-size:.8rem;color:#B5412F";
-    }
-
-    card.append(el("div",{class:"body"}, left, qrbox));
-    return card;
-  }
-
-  function downloadQR(qrDiv, name){
-    const img = qrDiv.querySelector("img"), cv = qrDiv.querySelector("canvas");
-    const src = cv ? cv.toDataURL("image/png") : img?.src;
-    if(!src) return;
-    const a = el("a",{href:src,download:`QR_${name.replace(/[^\w-]+/g,"_")}.png`});
-    document.body.append(a); a.click(); a.remove();
-  }
-
-  // ---------- scanned link handling ----------
-  function handleHash(){
-    const banner = $("#banner"); banner.innerHTML="";
-    const mm = location.hash.match(/^#m=(.+)$/);
-    if(!mm){ singleId=null; return; }
-    let scanned;
-    try{ scanned = decodeMotor(mm[1]); }
-    catch(e){
-      singleId=null;
-      banner.append(el("div",{class:"banner"},el("p",{},"This QR link is damaged and could not be read. Scan it again or ask for a fresh code.")));
-      return;
-    }
-    singleId = scanned.id;
-    const existing = findMotor(scanned.id);
-    if(!existing){
-      motors.unshift({...scanned, created:now()});
-      save();
-    } else if((scanned.updated||"") > (existing.updated||"")){
-      // QR is newer than this device: take the QR values
-      Object.assign(existing,{name:scanned.name,params:scanned.params,updated:scanned.updated});
-      save();
-    } else if((existing.updated||"") > (scanned.updated||"")){
-      banner.append(el("div",{class:"banner"},
-        el("p",{},`Showing the newer values saved on this device (${fmtDate(existing.updated)}). The printed QR holds older values from ${fmtDate(scanned.updated)}.`)));
-      history.replaceState(null,"","#m="+encodeMotor(existing));
-    }
-  }
-
-  // ---------- backup ----------
-  $("#exportBtn").addEventListener("click",()=>{
-    const blob = new Blob([JSON.stringify(motors,null,2)],{type:"application/json"});
-    const a = el("a",{href:URL.createObjectURL(blob),download:`motor-parameters-${new Date().toISOString().slice(0,10)}.json`});
-    document.body.append(a); a.click(); a.remove();
-  });
-  $("#importBtn").addEventListener("click",()=>$("#importFile").click());
-  $("#importFile").addEventListener("change",async e=>{
-    const f=e.target.files[0]; if(!f) return;
-    try{
-      const data = JSON.parse(await f.text());
-      if(!Array.isArray(data)) throw 0;
-      if(!confirm(`Replace the ${motors.length} motor(s) on this device with ${data.length} from the backup?`)) return;
-      motors = data; save(); render(); toast("Backup imported");
-    }catch(_){ toast("That file isn't a valid tracker backup."); }
-    e.target.value="";
-  });
-
-  $("#adminBtn").addEventListener("click", async ()=>{
-    if(isAdmin){
-      isAdmin=false; try{sessionStorage.removeItem("motorTracker.admin");}catch(e){}
-      render(); toast("Logged out"); return;
-    }
-    const pin = prompt("Enter admin PIN");
-    if(pin===null) return;
-    if(await sha256(pin) === ADMIN_PIN_HASH){
-      isAdmin=true; try{sessionStorage.setItem("motorTracker.admin","1");}catch(e){}
-      render(); toast("Logged in as admin");
-    } else toast("Wrong PIN");
-  });
-  $("#pinBtn").addEventListener("click", async ()=>{
-    const p1 = prompt("New admin PIN"); if(!p1) return;
-    const p2 = prompt("Type the new PIN again"); if(p1!==p2){ toast("PINs don't match"); return; }
-    const line = `const ADMIN_PIN_HASH = "${await sha256(p1)}";`;
-    $("#pinPanel").innerHTML="";
-    $("#pinPanel").append(el("div",{class:"banner"},
-      el("p",{},"To change the PIN on every device, open index.html on GitHub, replace the ADMIN_PIN_HASH line near the top of the script with this line, and commit:"),
-      el("div",{class:"pinline"},line),
-      el("p",{style:"margin-top:8px"}, el("button",{onclick:()=>{navigator.clipboard?.writeText(line).then(()=>toast("Line copied"));}},"Copy line"), " ",
-        el("button",{class:"ghost",onclick:()=>{$("#pinPanel").innerHTML="";}},"Close"))));
-  });
-
-  window.addEventListener("hashchange",()=>{handleHash();render();});
-  handleHash();
+    throw new Error("Someone else is saving right now. Try again in a moment.");
+  }catch(e){ setSync("err","Not saved"); throw e; }
+  finally{ busy=false; render(); }
+}
+async function load(quiet){
+  if(busy) return;
+  if(!quiet) setSync("busy","Loading…");
+  try{
+    const {d}=await ghRead(); data=d; loaded=true; lastError="";
+    setSync("ok", token?"Up to date":"View only");
+  }catch(e){ lastError=e.message; setSync("err","Offline"); loaded=true; }
   render();
+}
+function setSync(state,text){ const p=$("#sync"); p.className="pill "+state; p.lastElementChild.textContent=text; }
+function fail(e){ console.error(e); toast(e.message||"Something went wrong"); }
+
+// ---------- render ----------
+function render(){
+  document.body.classList.toggle("admin",isAdmin);
+  document.body.classList.toggle("single",!!singleId);
+  $("#adminBtn").classList.toggle("on",isAdmin);
+  $("#adminBtn").lastElementChild.textContent=isAdmin?"Admin on":"Admin";
+  $("#keyBtn").classList.toggle("on",!!token);
+  $("#keyBtn").lastElementChild.textContent=token?"Can edit":"Edit access";
+  renderNotices();
+
+  const grid=$("#grid"); grid.innerHTML="";
+  $("#toolbar").hidden=!!singleId || !loaded;
+  ["#exportBtn","#shareKeyBtn","#newMotorBtn"].forEach(s=>$(s).hidden=!isAdmin);
+  if(!loaded){ grid.append(el("p",{class:"empty"},"Loading motors…")); return; }
+
+  if(singleId){
+    const m=data.motors.find(x=>x.id===singleId);
+    if(isAdmin) grid.append(el("a",{href:PAGE,class:"backlink"},icon("back"),"All motors"));
+    grid.append(m?card(m):el("div",{class:"zero"},el("h2",{},"Motor not found"),el("p",{},"This motor may have been deleted. Ask the admin for a new QR code.")));
+    return;
+  }
+
+  const q=$("#search").value.trim().toLowerCase();
+  const list=data.motors.filter(m=>!q||m.name.toLowerCase().includes(q)||m.params.some(p=>p.name.toLowerCase().includes(q)));
+  $("#count").textContent=`${data.motors.length} motor${data.motors.length===1?"":"s"}`;
+  if(!data.motors.length){
+    grid.append(el("div",{class:"zero"},el("h2",{},"No motors yet"),
+      el("p",{},isAdmin?"Select New motor to add your first one.":"An admin needs to add motors first.")));
+    return;
+  }
+  if(!list.length){ grid.append(el("div",{class:"zero"},el("h2",{},"No matches"),el("p",{},"Try a different motor or parameter name."))); return; }
+  list.forEach(m=>grid.append(card(m)));
+}
+
+function renderNotices(){
+  const n=$("#notices"); n.innerHTML="";
+  if(lastError) n.append(el("div",{class:"notice"},el("div",{},el("p",{},lastError),
+    el("div",{class:"acts"},el("button",{class:"btn",onclick:()=>load()},"Try again")))));
+  if(!token && loaded && !lastError) n.append(el("div",{class:"notice"},el("div",{},
+    el("p",{},"You can view values on this device. To save changes, this device needs edit access."),
+    el("div",{class:"acts"},el("button",{class:"btn primary",onclick:openKeyDialog},"Set up edit access")))));
+  const old=oldLocal();
+  if(isAdmin && token && old.length && !singleId) n.append(el("div",{class:"notice"},el("div",{},
+    el("p",{},`This browser has ${old.length} motor(s) from an older version that aren't in motors.json yet.`),
+    el("div",{class:"acts"},
+      el("button",{class:"btn primary",onclick:async()=>{ try{ await mutate(d=>addMotors(d,old),"Import motors from browser"); LS.del("motorTracker.v1"); toast("Motors uploaded"); }catch(e){fail(e);} }},"Upload them"),
+      el("button",{class:"btn",onclick:()=>{ if(confirm("Discard the old motors saved in this browser?")){ LS.del("motorTracker.v1"); render(); } }},"Discard")))));
+}
+
+function card(m){
+  const canEdit=!!token;
+  const dr=drafts[m.id]||(drafts[m.id]={});
+  const c=el("article",{class:"card","aria-label":m.name});
+
+  c.append(el("div",{class:"card-head"},
+    el("div",{class:"ttl"},el("h2",{},m.name),
+      el("div",{class:"meta"},`${m.params.length} parameter${m.params.length===1?"":"s"} · Updated ${fmtDate(m.updated)}`)),
+    isAdmin && el("div",{class:"head-actions"},
+      el("button",{class:"btn quiet",title:"Rename motor","aria-label":"Rename motor",onclick:()=>renameMotor(m)},icon("edit")),
+      el("button",{class:"btn quiet danger",title:"Delete motor","aria-label":"Delete motor",onclick:()=>deleteMotor(m)},icon("trash")))));
+
+  // footer pieces built first so inputs can update them
+  const note=el("span",{class:"note"});
+  const saveBtn=el("button",{class:"btn primary",onclick:()=>saveDraft(m)},"Save changes");
+  const discardBtn=el("button",{class:"btn",onclick:()=>{ delete drafts[m.id]; render(); }},"Discard");
+  const refreshFoot=()=>{
+    const n=Object.keys(dr).length;
+    saveBtn.hidden=discardBtn.hidden=!n;
+    note.className="note"+(n?" warn":"");
+    note.textContent=n?`${n} unsaved change${n===1?"":"s"}`:(canEdit?"Edit a value, then save.":"View only on this device.");
+  };
+
+  const body=el("div",{class:"params"});
+  if(!m.params.length){
+    body.append(el("p",{class:"empty"},isAdmin?"No parameters yet. Add one below, e.g. Rated current, Rs, Ld, Lq, Kv.":"No parameters yet."));
+  }else{
+    body.append(el("div",{class:"prow hdr"},el("span",{},"Parameter"),el("span",{},"Current"),el("span",{},"Previous"),el("span",{style:"text-align:right"},"Change"),el("span",{})));
+    m.params.forEach(p=>{
+      const val=f=>dr[p.id]?.[f]??p[f]??"";
+      const chg=el("span",{class:"chg"});
+      const mk=(f,cls)=>{
+        const i=el("input",{class:"f",value:val(f),inputmode:"decimal",disabled:!canEdit,"aria-label":`${p.name} ${f} value`});
+        if(dr[p.id]&&f in dr[p.id]) i.classList.add("dirty");
+        i.addEventListener("input",()=>{
+          const v=i.value;
+          if(v===(p[f]??"")){ if(dr[p.id]){ delete dr[p.id][f]; if(!Object.keys(dr[p.id]).length) delete dr[p.id]; } i.classList.remove("dirty"); }
+          else{ (dr[p.id]||(dr[p.id]={}))[f]=v; i.classList.add("dirty"); }
+          upd(); refreshFoot();
+        });
+        i.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(Object.keys(dr).length) saveDraft(m); } });
+        i.wrap=el("label",{class:cls},el("span",{class:"lbl"},f==="current"?"Current":"Previous"),i);
+        return i;
+      };
+      const ci=mk("current","c"), pi=mk("previous","p");
+      const upd=()=>{ const d=delta(ci.value,pi.value); chg.textContent=d.txt; chg.className="chg "+d.cls; };
+      upd();
+      body.append(el("div",{class:"prow"},el("span",{class:"pname"},p.name),ci.wrap,pi.wrap,chg,
+        el("button",{class:"btn quiet danger rm",title:`Remove ${p.name}`,"aria-label":`Remove ${p.name}`,tabindex:isAdmin?null:"-1",onclick:()=>removeParam(m,p)},icon("x"))));
+    });
+  }
+  c.append(body);
+
+  if(isAdmin){
+    const n=el("input",{class:"f n",placeholder:"Parameter name","aria-label":"New parameter name"});
+    const cu=el("input",{class:"f",placeholder:"Current","aria-label":"Current value",inputmode:"decimal"});
+    const pr=el("input",{class:"f",placeholder:"Previous","aria-label":"Previous value",inputmode:"decimal"});
+    const add=async()=>{
+      const name=n.value.trim(); if(!name){ n.focus(); toast("Enter a parameter name first"); return; }
+      try{ await mutate(d=>{ const t=d.motors.find(x=>x.id===m.id); if(!t) throw new Error("This motor was deleted.");
+        t.params.push({id:uid(),name,current:cu.value.trim(),previous:pr.value.trim()}); t.updated=now(); },`Add parameter ${name} to ${m.name}`);
+        toast("Parameter added"); }catch(e){fail(e);}
+    };
+    [n,cu,pr].forEach(i=>i.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } }));
+    c.append(el("div",{class:"addp"},n,cu,pr,el("button",{class:"btn",onclick:add},icon("plus"),"Add")));
+  }
+
+  const qrMini=el("span",{class:"q"});
+  const foot=el("div",{class:"card-foot"},note,
+    canEdit && m.params.length ? el("button",{class:"btn",title:"Copy every current value into Previous",onclick:()=>{
+      m.params.forEach(p=>{ const cur=dr[p.id]?.current??p.current??""; if(cur!==(p.previous??"")) (dr[p.id]||(dr[p.id]={})).previous=cur; });
+      render(); toast("Current values copied to Previous. Enter new readings, then save.");
+    }},"New reading") : null,
+    discardBtn,saveBtn,
+    el("button",{class:"qrthumb",title:"Show QR code",onclick:()=>openQR(m)},qrMini,"QR"));
+  c.append(foot);
+  refreshFoot();
+  try{ new QRCode(qrMini,{text:motorUrl(m),width:88,height:88,correctLevel:QRCode.CorrectLevel.M}); }catch(e){}
+  return c;
+}
+const motorUrl=m=>PAGE+"?m="+encodeURIComponent(m.id);
+
+// ---------- actions ----------
+async function saveDraft(m){
+  const dr=drafts[m.id]; if(!dr||!Object.keys(dr).length) return;
+  const snapshot=JSON.parse(JSON.stringify(dr));
+  try{
+    await mutate(d=>{
+      const t=d.motors.find(x=>x.id===m.id); if(!t) throw new Error("This motor was deleted.");
+      for(const [pid,vals] of Object.entries(snapshot)){ const p=t.params.find(x=>x.id===pid); if(p) Object.entries(vals).forEach(([f,v])=>p[f]=v.trim()); }
+      t.updated=now();
+    },`Update ${m.name} values`);
+    delete drafts[m.id]; render(); toast("Saved");
+  }catch(e){ fail(e); }
+}
+function newMotor(){
+  dialog("New motor",[el("label",{for:"nm"},"Motor name"),el("input",{class:"f",id:"nm",placeholder:"e.g. Flyer Frame spindle M1",autocomplete:"off"})],
+    "Create motor", async()=>{
+      const name=$("#nm").value.trim(); if(!name){ $("#nm").focus(); return false; }
+      await mutate(d=>{ d.motors.unshift({id:uid(),name,params:[],created:now(),updated:now()}); },`Add motor ${name}`);
+      toast("Motor created");
+    });
+}
+function renameMotor(m){
+  dialog("Rename motor",[el("label",{for:"rn"},"Motor name"),el("input",{class:"f",id:"rn",value:m.name})],"Save name",async()=>{
+    const name=$("#rn").value.trim(); if(!name) return false;
+    await mutate(d=>{ const t=d.motors.find(x=>x.id===m.id); if(t){ t.name=name; t.updated=now(); } },`Rename ${m.name} to ${name}`);
+    toast("Renamed");
+  });
+}
+function deleteMotor(m){
+  dialog("Delete motor?",[el("p",{},`"${m.name}" and all its parameters will be removed. Its printed QR code will stop working.`)],"Delete motor",async()=>{
+    await mutate(d=>{ d.motors=d.motors.filter(x=>x.id!==m.id); },`Delete motor ${m.name}`);
+    delete drafts[m.id];
+    if(singleId===m.id) location.href=PAGE;
+    toast("Motor deleted");
+  },true);
+}
+async function removeParam(m,p){
+  if(!confirm(`Remove "${p.name}" from ${m.name}?`)) return;
+  try{ await mutate(d=>{ const t=d.motors.find(x=>x.id===m.id); if(t){ t.params=t.params.filter(x=>x.id!==p.id); t.updated=now(); } },`Remove ${p.name} from ${m.name}`);
+    if(drafts[m.id]) delete drafts[m.id][p.id]; toast("Parameter removed"); }catch(e){fail(e);}
+}
+function addMotors(d,list){
+  list.forEach(m=>d.motors.push({id:m.id&&!d.motors.some(x=>x.id===m.id)?m.id:uid(),name:String(m.name||"Unnamed motor"),
+    params:(m.params||[]).map(p=>({id:p.id||uid(),name:String(p.name||""),current:String(p.current??""),previous:String(p.previous??"")})),
+    created:m.created||now(),updated:now()}));
+}
+const oldLocal=()=>{ try{ return JSON.parse(LS.get("motorTracker.v1")||"[]"); }catch(e){ return []; } };
+
+// ---------- dialogs ----------
+function dialog(title,content,okText,onOk,danger){
+  const d=$("#dlg"); d.innerHTML="";
+  const ok=el("button",{class:"btn "+(danger?"danger":"primary"),type:"submit"},okText);
+  const form=el("form",{method:"dialog"},
+    el("div",{class:"dlg-h"},el("h3",{},title),el("button",{class:"btn quiet",type:"button","aria-label":"Close",onclick:()=>d.close()},icon("x"))),
+    el("div",{class:"dlg-b"},content),
+    el("div",{class:"dlg-f"},el("button",{class:"btn",type:"button",onclick:()=>d.close()},onOk?"Cancel":"Close"),onOk&&ok));
+  form.addEventListener("submit",async e=>{
+    if(!onOk) return; e.preventDefault(); ok.disabled=true;
+    try{ const r=await onOk(); if(r!==false) d.close(); }catch(err){ fail(err); }
+    ok.disabled=false;
+  });
+  d.append(form); d.showModal();
+  d.querySelector("input")?.focus();
+}
+function openQR(m){
+  const q=el("div",{class:"q"});
+  const url=motorUrl(m);
+  dialog("QR code",[el("div",{class:"bigqr"},q,el("div",{class:"cap"},m.name)),
+    el("p",{style:"margin-top:12px"},"Scanning opens only this motor. The QR always shows the latest values, so it never needs reprinting."),
+    el("div",{style:"display:flex;gap:8px;flex-wrap:wrap"},
+      el("button",{class:"btn",type:"button",onclick:()=>navigator.clipboard?.writeText(url).then(()=>toast("Link copied"),()=>prompt("Copy this link",url))},"Copy link"),
+      el("button",{class:"btn",type:"button",onclick:()=>downloadQR(q,m.name)},"Download PNG"),
+      el("button",{class:"btn",type:"button",onclick:()=>printQR(q,m.name)},"Print label"))]);
+  new QRCode(q,{text:url,width:480,height:480,correctLevel:QRCode.CorrectLevel.M});
+}
+function qrSrc(q){ const cv=q.querySelector("canvas"), img=q.querySelector("img"); return cv?cv.toDataURL("image/png"):img?.src; }
+function downloadQR(q,name){
+  // Add the motor name under the code
+  const src=qrSrc(q); if(!src) return;
+  const im=new Image(); im.onload=()=>{
+    const cv=document.createElement("canvas"); cv.width=560; cv.height=640; const x=cv.getContext("2d");
+    x.fillStyle="#fff"; x.fillRect(0,0,560,640); x.drawImage(im,40,40,480,480);
+    x.fillStyle="#14273A"; x.font="600 30px Barlow, Arial, sans-serif"; x.textAlign="center";
+    x.fillText(name.length>34?name.slice(0,33)+"…":name,280,580);
+    const a=el("a",{href:cv.toDataURL("image/png"),download:`QR_${name.replace(/[^\w-]+/g,"_")}.png`}); document.body.append(a); a.click(); a.remove();
+  }; im.src=src;
+}
+function printQR(q,name){
+  const src=qrSrc(q); if(!src) return;
+  const w=window.open("","_blank"); if(!w){ toast("Allow pop-ups to print"); return; }
+  w.document.write(`<title>${name.replace(/</g,"&lt;")}</title><body style="font-family:Arial;text-align:center;padding:30px"><img src="${src}" style="width:6cm;height:6cm"><h2 style="margin:8px 0 0">${name.replace(/</g,"&lt;")}</h2><p style="color:#555;margin:4px 0">Scan to view and edit parameters</p></body>`);
+  w.document.close(); w.onload=()=>w.print(); setTimeout(()=>w.print(),400);
+}
+function openKeyDialog(){
+  const inp=el("input",{class:"f",id:"tk",type:"password",placeholder:"github_pat_…",autocomplete:"off",value:token});
+  dialog("Edit access",[
+    el("p",{},"Saving needs a GitHub access key for this repository. Enter it once and this device remembers it. Without a key, the page is view only."),
+    el("label",{for:"tk"},"GitHub access key"),inp,
+    el("p",{style:"margin-top:10px;font-size:.88rem"},"Easier on phones: the admin can send you an edit link that sets this up in one tap."),
+    token && el("button",{class:"btn danger",type:"button",onclick:()=>{ token=""; LS.del("mpt.token"); $("#dlg").close(); load(); toast("Edit access removed from this device"); }},"Remove key from this device")
+  ],"Save key",async()=>{
+    const v=$("#tk").value.trim(); if(!v) return false;
+    token=v; LS.set("mpt.token",v);
+    try{ await ghRead(); toast("This device can now save changes"); }catch(e){ token=""; LS.del("mpt.token"); throw e; }
+    load();
+  });
+}
+function openAdmin(){
+  if(isAdmin){
+    dialog("Admin",[
+      el("p",{},"You can create, rename and delete motors, and add or remove parameters."),
+      el("div",{style:"display:flex;gap:8px;flex-wrap:wrap"},
+        el("button",{class:"btn",type:"button",onclick:changePin},"Change PIN"),
+        el("button",{class:"btn",type:"button",onclick:()=>$("#importFile").click()},"Import backup"))
+    ],"Log out",async()=>{ isAdmin=false; SS.del("mpt.admin"); render(); toast("Admin logged out"); });
+    return;
+  }
+  dialog("Admin login",[el("label",{for:"pin"},"Admin PIN"),el("input",{class:"f",id:"pin",type:"password",inputmode:"numeric",autocomplete:"off"})],"Log in",async()=>{
+    if(await sha256($("#pin").value)!==ADMIN_PIN_HASH){ toast("Wrong PIN"); $("#pin").select(); return false; }
+    isAdmin=true; SS.set("mpt.admin","1"); render(); toast("Admin on");
+    if(!token) setTimeout(openKeyDialog,250);
+  });
+}
+async function changePin(){
+  const p1=prompt("New admin PIN"); if(!p1) return;
+  if(prompt("Type the new PIN again")!==p1){ toast("PINs don't match"); return; }
+  const line=`const ADMIN_PIN_HASH = "${await sha256(p1)}";`;
+  dialog("New PIN",[el("p",{},"Open index.html on GitHub, replace the ADMIN_PIN_HASH line near the top of the script with this line, and commit."),el("div",{class:"code"},line),
+    el("button",{class:"btn",type:"button",style:"margin-top:10px",onclick:()=>navigator.clipboard?.writeText(line).then(()=>toast("Copied"))},"Copy line")]);
+}
+function shareKey(){
+  if(!token){ openKeyDialog(); return; }
+  const link=PAGE+"#key="+encodeURIComponent(token);
+  dialog("Share edit link",[
+    el("p",{},"Send this link privately (for example on WhatsApp) to people who should be able to save values. Opening it gives their device edit access."),
+    el("p",{style:"color:var(--down);font-weight:600"},"Don't print it or put it in a QR on the machine. Anyone with this link can change the repository."),
+    el("div",{class:"code"},link),
+    el("button",{class:"btn",type:"button",style:"margin-top:10px",onclick:()=>navigator.clipboard?.writeText(link).then(()=>toast("Edit link copied"))},"Copy edit link")]);
+}
+
+// ---------- wire up ----------
+$("#refreshBtn").addEventListener("click",()=>{ if(Object.values(drafts).some(d=>Object.keys(d).length)&&!confirm("Refreshing keeps your unsaved edits on screen but loads newer values underneath. Continue?")) return; load(); });
+$("#keyBtn").addEventListener("click",openKeyDialog);
+$("#adminBtn").addEventListener("click",openAdmin);
+$("#newMotorBtn").addEventListener("click",newMotor);
+$("#shareKeyBtn").addEventListener("click",shareKey);
+$("#search").addEventListener("input",render);
+$("#exportBtn").addEventListener("click",()=>{
+  const a=el("a",{href:URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),download:`motors-backup-${new Date().toISOString().slice(0,10)}.json`});
+  document.body.append(a); a.click(); a.remove();
+});
+const fileIn=el("input",{type:"file",id:"importFile",accept:"application/json",hidden:true});
+document.body.append(fileIn);
+fileIn.addEventListener("change",async e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f) return;
+  try{ const d=normalize(JSON.parse(await f.text()));
+    if(!confirm(`Add ${d.motors.length} motor(s) from this backup?`)) return;
+    await mutate(x=>addMotors(x,d.motors),"Import backup"); toast("Backup imported");
+  }catch(err){ fail(err.message?err:new Error("That file isn't a valid backup.")); }
+});
+
+// Edit link (#key=...) sets up this device, then removes the key from the address bar
+if(location.hash.startsWith("#key=")){
+  token=decodeURIComponent(location.hash.slice(5)); LS.set("mpt.token",token);
+  history.replaceState(null,"",location.pathname+location.search);
+  setTimeout(()=>toast("This device can now save changes"),300);
+}else if(location.hash.startsWith("#m=")){
+  history.replaceState(null,"",location.pathname);
+  setTimeout(()=>toast("That was an old QR code. Ask the admin for the new one."),300);
+}
+
+// Keep values fresh while the page is open
+setInterval(()=>{
+  const editing=document.activeElement?.tagName==="INPUT" || Object.values(drafts).some(d=>Object.keys(d).length) || $("#dlg").open;
+  if(document.visibilityState==="visible" && !editing) load(true);
+}, token?45000:120000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && !busy) load(true); });
+
+render();
+load();
 })();
 </script>
 </body>
