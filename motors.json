@@ -4,9 +4,16 @@
     {
       "id": "mv9866bypa4ml",
       "name": "Pi_Wind_Pro_Motor1",
-      "params": [],
+      "params": [
+        {
+          "id": "mv989be7bc7rq",
+          "name": "test",
+          "current": "10",
+          "previous": "10"
+        }
+      ],
       "created": "2026-10-15T07:36:23.182Z",
-      "updated": "2026-10-15T07:36:23.182Z"
+      "updated": "2026-10-15T07:38:49.711Z"
     }
   ]
 }
