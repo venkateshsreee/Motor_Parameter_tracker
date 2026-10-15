@@ -32,9 +32,16 @@
     {
       "id": "mv98h10f6ijkn",
       "name": "Pi_Wind_Pro_M8",
-      "params": [],
+      "params": [
+        {
+          "id": "mv9dxmc230dkp",
+          "name": "fuse shorted",
+          "current": "",
+          "previous": ""
+        }
+      ],
       "created": "2026-10-15T07:44:49.503Z",
-      "updated": "2026-10-15T07:44:49.503Z"
+      "updated": "2026-10-15T10:17:41.714Z"
     },
     {
       "id": "mv98guiyp29fq",
