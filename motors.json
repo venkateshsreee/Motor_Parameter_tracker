@@ -60,9 +60,16 @@
     {
       "id": "mv98fzbj72fnq",
       "name": "Pi_Wind_Pro_M3",
-      "params": [],
+      "params": [
+        {
+          "id": "mv9cfp156d8fm",
+          "name": "loadtested IITM",
+          "current": "07-10-2026",
+          "previous": ""
+        }
+      ],
       "created": "2026-10-15T07:44:00.655Z",
-      "updated": "2026-10-15T07:44:00.655Z"
+      "updated": "2026-10-15T09:35:45.785Z"
     },
     {
       "id": "mv98c8aff3z2y",
