@@ -48,10 +48,16 @@
           "name": "fuse shorted",
           "current": "",
           "previous": ""
+        },
+        {
+          "id": "mwdhf85oui5fq",
+          "name": "Z-axis load failed",
+          "current": "",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:54.930Z",
-      "updated": "2026-10-15T12:26:47.452Z"
+      "updated": "2026-11-12T11:46:09.036Z"
     },
     {
       "id": "mv98h10f6ijkn",
