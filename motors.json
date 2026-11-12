@@ -58,12 +58,12 @@
         {
           "id": "mwdi63vdp1ibu",
           "name": "w-phase mosfet track",
-          "current": "",
+          "current": "out",
           "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:54.930Z",
-      "updated": "2026-11-12T12:07:03.193Z"
+      "updated": "2026-11-12T12:07:16.430Z"
     },
     {
       "id": "mv98h10f6ijkn",
