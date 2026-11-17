@@ -80,10 +80,16 @@
           "name": "Align Tim2 counter",
           "current": "357",
           "previous": "1573"
+        },
+        {
+          "id": "mwklzq4tll1xz",
+          "name": "w-phase mosfet track",
+          "current": "out",
+          "previous": "17nov"
         }
       ],
       "created": "2026-10-15T07:44:49.503Z",
-      "updated": "2026-11-13T12:14:16.876Z"
+      "updated": "2026-11-17T11:28:27.149Z"
     },
     {
       "id": "mv98guiyp29fq",
