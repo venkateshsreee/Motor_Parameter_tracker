@@ -236,10 +236,16 @@
           "name": "Align Tim2 counter",
           "current": "787",
           "previous": "1196"
+        },
+        {
+          "id": "mwm2icxtnfvjb",
+          "name": "U-phase mosfet track",
+          "current": "out",
+          "previous": "18-nov"
         }
       ],
       "created": "2026-10-15T07:41:05.655Z",
-      "updated": "2026-11-18T10:25:09.410Z"
+      "updated": "2026-11-18T11:58:36.545Z"
     },
     {
       "id": "mv9866bypa4ml",
