@@ -196,10 +196,16 @@
           "name": "fuse shorted",
           "current": "",
           "previous": ""
+        },
+        {
+          "id": "mwn2093lhezsg",
+          "name": "shaft up-down",
+          "current": "",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:07.360Z",
-      "updated": "2026-11-19T04:31:46.087Z"
+      "updated": "2026-11-19T04:32:17.937Z"
     },
     {
       "id": "mv98fzbj72fnq",
