@@ -246,12 +246,12 @@
         {
           "id": "mwm2icxtnfvjb",
           "name": "U-phase mosfet track",
-          "current": "out",
+          "current": "Damaged",
           "previous": "18-nov"
         }
       ],
       "created": "2026-10-15T07:41:05.655Z",
-      "updated": "2026-11-18T11:58:36.545Z"
+      "updated": "2026-11-19T04:33:07.522Z"
     },
     {
       "id": "mv9866bypa4ml",
