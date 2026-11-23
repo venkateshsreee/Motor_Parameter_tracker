@@ -254,10 +254,16 @@
           "name": "U-phase mosfet track",
           "current": "Damaged",
           "previous": "18-nov"
+        },
+        {
+          "id": "mwt7pkuls8k9a",
+          "name": "UVW patched with wire",
+          "current": "23Nov",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:41:05.655Z",
-      "updated": "2026-11-19T04:33:07.522Z"
+      "updated": "2026-11-23T11:58:34.702Z"
     },
     {
       "id": "mv9866bypa4ml",
