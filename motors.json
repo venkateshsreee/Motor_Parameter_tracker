@@ -86,10 +86,16 @@
           "name": "w-phase mosfet track",
           "current": "out",
           "previous": "17nov"
+        },
+        {
+          "id": "mwt7q2e7riqkr",
+          "name": "UVW patched with wire",
+          "current": "23Nov",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:49.503Z",
-      "updated": "2026-11-17T11:28:27.149Z"
+      "updated": "2026-11-23T11:58:57.439Z"
     },
     {
       "id": "mv98guiyp29fq",
