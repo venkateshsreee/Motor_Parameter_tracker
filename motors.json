@@ -267,7 +267,7 @@
           "id": "mv9gcgv9guio3",
           "name": "Align Tim2 counter",
           "current": "657",
-          "previous": "498"
+          "previous": "657"
         },
         {
           "id": "mv9hjzls0erxc",
@@ -279,11 +279,11 @@
           "id": "mvrq6affxjbe3",
           "name": "Yphase H&L LGBET",
           "current": "Damaged",
-          "previous": "stop test"
+          "previous": "Damaged"
         }
       ],
       "created": "2026-10-15T07:36:23.182Z",
-      "updated": "2026-11-23T11:53:15.397Z"
+      "updated": "2026-11-23T11:57:21.994Z"
     }
   ]
 }
