@@ -194,10 +194,16 @@
           "name": "cap track shot tup sound",
           "current": "23Nov",
           "previous": "no load"
+        },
+        {
+          "id": "mwuop5lkheuqe",
+          "name": "cap changed track patched",
+          "current": "24Nov",
+          "previous": ""
         }
       ],
       "created": "2026-10-15T07:44:13.288Z",
-      "updated": "2026-11-23T12:27:06.027Z"
+      "updated": "2026-11-24T12:41:54.584Z"
     },
     {
       "id": "mv98g4hsmrz49",
